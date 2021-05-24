@@ -74,7 +74,6 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
         if lineStart != data.endIndex {
             result.append(lineStart ..< data.endIndex)
         }
-        print("Did re-layout items:", result, "for width:", maxWidth)
         return result
     }
     
@@ -103,7 +102,6 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                             let key = d[keyPath: id]
                             sizes[key] = size
                             calculatesSizesKeys.insert(key)
-                            print("Did calculate size for \(d) \(size)")
                         }
                 }
             }

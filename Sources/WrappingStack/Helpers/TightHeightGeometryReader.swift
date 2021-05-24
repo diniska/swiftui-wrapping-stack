@@ -13,12 +13,10 @@ struct TightHeightGeometryReader<Content: View>: View {
     }
     
     var body: some View {
-        print("created hierarchy for height=\(height)")
-        return GeometryReader { geometry in
+        GeometryReader { geometry in
             content(geometry)
                 .onSizeChange { size in
                     if self.height != size.height {
-                        print("did update height \(self.height) -> \(self.height). width = \(size.width)")
                         self.height = size.height
                     }
                 }
