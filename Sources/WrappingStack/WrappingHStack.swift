@@ -6,12 +6,12 @@ import SwiftUI
 @available(iOS 14, macOS 11, *)
 public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
     
-    let data: Data
-    var content: (Data.Element) -> Content
-    var id: KeyPath<Data.Element, ID>
-    var alignment: Alignment
-    var horizontalSpacing: CGFloat
-    var verticalSpacing: CGFloat
+    public let data: Data
+    public var content: (Data.Element) -> Content
+    public var id: KeyPath<Data.Element, ID>
+    public var alignment: Alignment
+    public var horizontalSpacing: CGFloat
+    public var verticalSpacing: CGFloat
     
     @State private var sizes: [ID: CGSize] = [:]
     @State private var calculatesSizesKeys: Set<ID> = []
