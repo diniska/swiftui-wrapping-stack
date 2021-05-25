@@ -55,7 +55,7 @@ Customize appearance using the next parameters. All the default SwiftUI modifier
 
 Parameter name | Description
 ---------------|--------------
-`alignment`    | horizontal and vertical alignment. `.center` is used by default. Vertical alignment is aplied to every row
+`alignment`    | horizontal and vertical alignment. `.center` is used by default. Vertical alignment is applied to every row
 `horizontalSpacing` | horizontal spacing between elements
 `verticalSpacing` | vertical spacing between the lines
 

@@ -36,7 +36,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     ///
     /// - Parameters:
     ///   - id: a keypath of element identifier
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is aplied to every row
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
     ///   - horizontalSpacing: horizontal spacing between elements
     ///   - verticalSpacing: vertical spacing between the lines
     ///   - create: a method that creates an array of elements
@@ -122,7 +122,7 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
     /// Creates a new WrappingHStack
     ///
     /// - Parameters:
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is aplied to every row
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
     ///   - horizontalSpacing: horizontal spacing between elements
     ///   - verticalSpacing: vertical spacing between the lines
     ///   - create: a method that creates an array of elements
