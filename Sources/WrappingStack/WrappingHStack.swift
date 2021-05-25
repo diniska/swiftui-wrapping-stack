@@ -32,13 +32,21 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
         return result
     }
     
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - id: a keypath of element identifier
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is aplied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
     public init(
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment = .center,
         horizontalSpacing: CGFloat = 0,
         verticalSpacing: CGFloat = 0,
         @ViewBuilder content create: () -> ForEach<Data, ID, Content>
-    ){
+    ) {
         let forEach = create()
         data = forEach.data
         content = forEach.content
@@ -111,8 +119,24 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
 
 @available(iOS 14, macOS 11, *)
 extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable {
-    public init(@ViewBuilder content create: () -> ForEach<Data, ID, Content>) {
-        self.init(id: \.id, content: create)
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is aplied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
+    public init(
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+    ) {
+        self.init(id: \.id,
+                  alignment: alignment,
+                  horizontalSpacing: horizontalSpacing,
+                  verticalSpacing: verticalSpacing,
+                  content: create)
     }
 }
 
@@ -121,15 +145,21 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
 @available(iOS 14, macOS 11, *)
 struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
-        WrappingHStack(id: \.self, alignment: .topLeading) {
-            ForEach(["Hello1", "world1", "Hello2", "world2", "Hello3", "world3", "Hello4", "world4       ", "Hello1"], id: \.self) { item in
-                Text(item)
+        WrappingHStack(
+            id: \.self,
+            horizontalSpacing: 8,
+            verticalSpacing: 8
+        ) {
+            ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
+                Text(element)
                     .padding()
-                    .background(Color(.systemGray))
-                    .cornerRadius(3)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
             }
         }
+        .padding()
         .frame(width: 300)
+        .background(Color.white)
     }
 }
 
