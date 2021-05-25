@@ -1,0 +1,23 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ void ]
+  pull_request:
+    branches: [ void ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build for macOS
+      run: swift build -v
+    - name: Run tests for macOS
+      run: swift test -v
+    - name: Build for iOS
+      run: xcodebuild build -sdk iphoneos -scheme 'WrappingStack'
+    - name: Run tests for iOS
+      run: xcodebuild test -destination 'name=iPhone 8' -scheme "WrappingStack"
