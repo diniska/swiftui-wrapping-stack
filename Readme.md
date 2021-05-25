@@ -59,4 +59,9 @@ Parameter name | Description
 `horizontalSpacing` | horizontal spacing between elements
 `verticalSpacing` | vertical spacing between the lines
 
+## Performance considerations
 
+The code written in a way to cache the elements representing views sizes, it doesn't re-calculate the size for different views with the same id.
+
+* huge numbers of elements are not recommended, although the same applies to `HStack` where `LazyHStack` is a better alternative for the long rows. If you have a large number of elements - double-check the memory and performance on a real device
+* it is pretty good in terms of CPU consumption as every element calculates its size only once.
