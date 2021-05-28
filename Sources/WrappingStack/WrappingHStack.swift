@@ -109,7 +109,16 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Cell: V
     }
 }
 
+@available(iOS 14, macOS 11, *)
 extension WrappingHStack {
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - id: a keypath of element identifier
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
     public init(
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment = .center,
@@ -129,9 +138,66 @@ extension WrappingHStack {
 
 @available(iOS 14, macOS 11, *)
 extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable {
-    public init(@ViewBuilder content create: () -> ForEach<Data, ID, Cell>) {
-        self.init(id: \.id, content: create)
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
+    public init(
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+    ) {
+        self.init(id: \.id,
+                  alignment: alignment,
+                  horizontalSpacing: horizontalSpacing,
+                  verticalSpacing: verticalSpacing,
+                  content: create)
     }
+}
+
+//@available(iOS 14, macOS 11, *)
+//extension WrappingHStack where Data == Array<(Int, Cell)>, ID == Int {
+//    /// Single element wrapper
+//    public init(
+//        alignment: Alignment = .center,
+//        horizontalSpacing: CGFloat = 0,
+//        verticalSpacing: CGFloat = 0,
+//        @ViewBuilder content create: () -> Cell
+//    ) {
+//        data = [(0, create())]
+//        id = \.self.0
+//        self.alignment = alignment
+//        self.horizontalSpacing = horizontalSpacing
+//        self.verticalSpacing = verticalSpacing
+//        idsForCalculatingSizes = [0]
+//        self.content = { $0.1 }
+//    }
+//}
+
+@available(iOS 14, macOS 11, *)
+extension WrappingHStack where Data == Array<(Int, Cell)>, ID == Int, Cell == AnyView {
+    /// Single element wrapper
+    public init<C0: View, C1: View>(
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> TupleView<(C0, C1)>
+    ) {
+        let tuple = create().value
+        self.init(id: \.self.0, alignment: alignment, horizontalSpacing: horizontalSpacing, verticalSpacing: verticalSpacing) {
+            ForEach([(0, AnyView(tuple.0.background(Color.red))), (1, AnyView(tuple.1))], id: \.self.0) {
+                $0.1
+            }
+        }
+    }
+}
+
+private struct TupleWrapper<Element> {
+    var items: [Element]
 }
 
 #if DEBUG
@@ -139,15 +205,36 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
 @available(iOS 14, macOS 11, *)
 struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
-        WrappingHStack(id: \.self, alignment: .topLeading) {
-            ForEach(["Hello1", "world1", "Hello2", "world2", "Hello3", "world3", "Hello4", "world4       ", "Hello1"], id: \.self) { item in
-                Text(item)
+        WrappingHStack(
+            id: \.self,
+            horizontalSpacing: 8,
+            verticalSpacing: 8
+        ) {
+            ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
+                Text(element)
                     .padding()
-                    .background(Color(.systemGray))
-                    .cornerRadius(3)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
             }
         }
+        .padding()
         .frame(width: 300)
+        .background(Color.white)
+
+        WrappingHStack {
+            Text("Lorem")
+                .padding()
+            Text("ipsum")
+                .padding()
+        }
+        .background(Color.gray)
+        .frame(width: 120)
+        //        Text("dolor")
+        //        Text("sit")
+        //        Text("amet,")
+        //        Text("consectetur")
+        //        Text("adipiscing")
+        //        Text("elit")
     }
 }
 
