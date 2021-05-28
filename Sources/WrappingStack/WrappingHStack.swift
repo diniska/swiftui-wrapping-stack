@@ -4,10 +4,10 @@ import SwiftUI
 
 /// An HStack that grows vertically when single line overflows
 @available(iOS 14, macOS 11, *)
-public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
+public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Cell: View>: View {
     
     public let data: Data
-    public var content: (Data.Element) -> Content
+    public var cell: (Data.Element) -> Cell
     public var id: KeyPath<Data.Element, ID>
     public var alignment: Alignment
     public var horizontalSpacing: CGFloat
@@ -35,21 +35,22 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     /// Creates a new WrappingHStack
     ///
     /// - Parameters:
+    ///   - data: a data that stack represents
     ///   - id: a keypath of element identifier
     ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
     ///   - horizontalSpacing: horizontal spacing between elements
     ///   - verticalSpacing: vertical spacing between the lines
-    ///   - create: a method that creates an array of elements
+    ///   - create: a method that creates an element representation
     public init(
+        data: Data,
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment = .center,
         horizontalSpacing: CGFloat = 0,
         verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+        @ViewBuilder content create: @escaping (Data.Element) -> Cell
     ) {
-        let forEach = create()
-        data = forEach.data
-        content = forEach.content
+        self.data = data
+        cell = create
         idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
         self.id = id
         self.alignment = alignment
@@ -68,9 +69,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                 VStack(alignment: alignment.horizontal, spacing: verticalSpacing) {
                     ForEach(Array(splitted.enumerated()), id: \.offset) { list in
                         HStack(alignment: alignment.vertical, spacing: horizontalSpacing) {
-                            ForEach(data[list.element], id: id) {
-                                content($0)
-                            }
+                            ForEach(data[list.element], id: id, content: cell)
                         }
                     }
                 }
@@ -79,7 +78,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
             // Calculating sizes
             VStack {
                 ForEach(dataForCalculatingSizes, id: id) { d in
-                    content(d)
+                    cell(d)
                         .onSizeChange { size in
                             let key = d[keyPath: id]
                             elementsWidths[key] = size.width
@@ -88,6 +87,32 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                 }
             }
         }
+    }
+}
+
+extension WrappingHStack {
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - id: a keypath of element identifier
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
+    public init(
+        id: KeyPath<Data.Element, ID>,
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> ForEach<Data, ID, Cell>
+    ) {
+        let forEach = create()
+        self.init(data: forEach.data,
+                  id: id,
+                  alignment: alignment,
+                  horizontalSpacing: horizontalSpacing,
+                  verticalSpacing: verticalSpacing,
+                  content: forEach.content)
     }
 }
 
@@ -104,7 +129,7 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
         alignment: Alignment = .center,
         horizontalSpacing: CGFloat = 0,
         verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+        @ViewBuilder content create: () -> ForEach<Data, ID, Cell>
     ) {
         self.init(id: \.id,
                   alignment: alignment,
