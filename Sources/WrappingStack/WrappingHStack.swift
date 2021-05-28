@@ -57,38 +57,12 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
         self.verticalSpacing = verticalSpacing
     }
     
-    private func splitIntoLines(maxWidth: CGFloat) -> [Range<Data.Index>] {
-        var width: CGFloat = 0
-        var result: [Range<Data.Index>] = []
-        var lineStart = data.startIndex
-        var lineLength = 0
-        
-        for element in data {
-            guard let elementWidth = sizes[element[keyPath: id]]?.width
-            else { break }
-            let newWidth = width + elementWidth
-            if newWidth < maxWidth || lineLength == 0 {
-                width = newWidth + horizontalSpacing
-                lineLength += 1
-            } else {
-                width = elementWidth
-                let lineEnd = data.index(lineStart, offsetBy:lineLength)
-                result.append(lineStart ..< lineEnd)
-                lineLength = 0
-                lineStart = lineEnd
-            }
-        }
-        
-        if lineStart != data.endIndex {
-            result.append(lineStart ..< data.endIndex)
-        }
-        return result
-    }
-    
     public var body: some View {
         if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
             TightHeightGeometryReader { geometry in
-                let splitted = splitIntoLines(maxWidth: geometry.size.width)
+                let splitted = data.split(maxLength: geometry.size.width, spacing: horizontalSpacing) { element in
+                    sizes[element[keyPath: id]]?.width
+                }
                 
                 // All sizes are known
                 VStack(alignment: alignment.horizontal, spacing: verticalSpacing) {
