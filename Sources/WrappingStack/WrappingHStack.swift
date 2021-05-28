@@ -14,13 +14,13 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     public var verticalSpacing: CGFloat
     
     @State private var elementsWidths: [ID: CGFloat] = [:]
-    @State private var calculatesSizesKeys: Set<ID> = []
+    @State private var calculatedWidthsKeys: Set<ID> = []
     
     private let idsForCalculatingSizes: Set<ID>
     private var dataForCalculatingSizes: [Data.Element] {
         var result: [Data.Element] = []
         var idsToProcess: Set<ID> = idsForCalculatingSizes
-        idsToProcess.subtract(calculatesSizesKeys)
+        idsToProcess.subtract(calculatedWidthsKeys)
         
         data.forEach { item in
             let itemId = item[keyPath: id]
@@ -58,7 +58,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     }
     
     public var body: some View {
-        if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
+        if calculatedWidthsKeys.isSuperset(of: idsForCalculatingSizes) {
             TightHeightGeometryReader { geometry in
                 let splitted = data.split(maxLength: geometry.size.width, spacing: horizontalSpacing) { element in
                     elementsWidths[element[keyPath: id]]
@@ -83,7 +83,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                         .onSizeChange { size in
                             let key = d[keyPath: id]
                             elementsWidths[key] = size.width
-                            calculatesSizesKeys.insert(key)
+                            calculatedWidthsKeys.insert(key)
                         }
                 }
             }
