@@ -13,7 +13,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     public var horizontalSpacing: CGFloat
     public var verticalSpacing: CGFloat
     
-    @State private var sizes: [ID: CGSize] = [:]
+    @State private var elementsWidths: [ID: CGFloat] = [:]
     @State private var calculatesSizesKeys: Set<ID> = []
     
     private let idsForCalculatingSizes: Set<ID>
@@ -61,7 +61,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
         if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
             TightHeightGeometryReader { geometry in
                 let splitted = data.split(maxLength: geometry.size.width, spacing: horizontalSpacing) { element in
-                    sizes[element[keyPath: id]]?.width
+                    elementsWidths[element[keyPath: id]]
                 }
                 
                 // All sizes are known
@@ -82,7 +82,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                     content(d)
                         .onSizeChange { size in
                             let key = d[keyPath: id]
-                            sizes[key] = size
+                            elementsWidths[key] = size.width
                             calculatesSizesKeys.insert(key)
                         }
                 }
