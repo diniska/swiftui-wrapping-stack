@@ -4,10 +4,10 @@ import SwiftUI
 
 /// An HStack that grows vertically when single line overflows
 @available(iOS 14, macOS 11, *)
-public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
+public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Cell: View>: View {
     
     public let data: Data
-    public var content: (Data.Element) -> Content
+    public var content: (Data.Element) -> Cell
     public var id: KeyPath<Data.Element, ID>
     public var alignment: Alignment
     public var horizontalSpacing: CGFloat
@@ -32,16 +32,16 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
         return result
     }
     
-    public init(
+    private init(
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment = .center,
         horizontalSpacing: CGFloat = 0,
         verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+        data: Data,
+        @ViewBuilder content create: @escaping (Data.Element) -> Cell
     ){
-        let forEach = create()
-        data = forEach.data
-        content = forEach.content
+        self.data = data
+        self.content = create
         idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
         self.id = id
         self.alignment = alignment
@@ -109,9 +109,27 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     }
 }
 
+extension WrappingHStack {
+    public init(
+        id: KeyPath<Data.Element, ID>,
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> ForEach<Data, ID, Cell>
+    ){
+        let forEach = create()
+        self.init(id: id,
+                  alignment: alignment,
+                  horizontalSpacing: horizontalSpacing,
+                  verticalSpacing: verticalSpacing,
+                  data: forEach.data,
+                  content: forEach.content)
+    }
+}
+
 @available(iOS 14, macOS 11, *)
 extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable {
-    public init(@ViewBuilder content create: () -> ForEach<Data, ID, Content>) {
+    public init(@ViewBuilder content create: () -> ForEach<Data, ID, Cell>) {
         self.init(id: \.id, content: create)
     }
 }
