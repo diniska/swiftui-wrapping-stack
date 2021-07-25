@@ -159,8 +159,7 @@ struct WrappingHStack_Previews: PreviewProvider {
             }
         }
         .padding()
-        .frame(maxWidth: .infinity)
-//        .frame(width: 300)
+        .frame(width: 300)
         .background(Color.white)
     }
 }
