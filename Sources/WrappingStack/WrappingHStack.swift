@@ -87,7 +87,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     
     public var body: some View {
         if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
-            TightHeightGeometryReader { geometry in
+            TightHeightGeometryReader(alignment: alignment) { geometry in
                 let splitted = splitIntoLines(maxWidth: geometry.size.width)
                 
                 // All sizes are known
@@ -147,6 +147,7 @@ struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
         WrappingHStack(
             id: \.self,
+            alignment: .trailing,
             horizontalSpacing: 8,
             verticalSpacing: 8
         ) {
