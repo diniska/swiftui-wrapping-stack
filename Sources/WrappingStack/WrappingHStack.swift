@@ -71,10 +71,10 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                 width = newWidth + horizontalSpacing
                 lineLength += 1
             } else {
-                width = elementWidth
+                width = elementWidth + horizontalSpacing
                 let lineEnd = data.index(lineStart, offsetBy:lineLength)
                 result.append(lineStart ..< lineEnd)
-                lineLength = 0
+                lineLength = 1
                 lineStart = lineEnd
             }
         }
