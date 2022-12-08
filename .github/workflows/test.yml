@@ -18,6 +18,6 @@ jobs:
     - name: Run tests for macOS
       run: swift test -v
     - name: Build for iOS
-      run: xcodebuild build -sdk iphoneos -scheme 'WrappingStack'
+      run: xcodebuild build -sdk iphoneos -scheme 'WrappingStack' -destination 'name=iPhone 8'
     - name: Run tests for iOS
       run: xcodebuild test -destination 'name=iPhone 8' -scheme "WrappingStack"
