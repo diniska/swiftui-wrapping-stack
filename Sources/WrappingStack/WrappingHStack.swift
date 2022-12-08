@@ -2,157 +2,226 @@
 
 import SwiftUI
 
-/// An HStack that grows vertically when single line overflows
-@available(iOS 14, macOS 11, *)
-public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
+@available(iOS 16, macOS 13, *)
+public struct WrappingHStack: View {
     
-    public let data: Data
-    public var content: (Data.Element) -> Content
-    public var id: KeyPath<Data.Element, ID>
-    public var alignment: Alignment
+    public var idealLineLength: Int?
     public var horizontalSpacing: CGFloat
     public var verticalSpacing: CGFloat
     
-    @State private var sizes: [ID: CGSize] = [:]
-    @State private var calculatesSizesKeys: Set<ID> = []
-    
-    private let idsForCalculatingSizes: Set<ID>
-    private var dataForCalculatingSizes: [Data.Element] {
-        var result: [Data.Element] = []
-        var idsToProcess: Set<ID> = idsForCalculatingSizes
-        idsToProcess.subtract(calculatesSizesKeys)
-        
-        data.forEach { item in
-            let itemId = item[keyPath: id]
-            if idsToProcess.contains(itemId) {
-                idsToProcess.remove(itemId)
-                result.append(item)
-            }
-        }
-        return result
-    }
-    
-    /// Creates a new WrappingHStack
-    ///
-    /// - Parameters:
-    ///   - id: a keypath of element identifier
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
-    ///   - horizontalSpacing: horizontal spacing between elements
-    ///   - verticalSpacing: vertical spacing between the lines
-    ///   - create: a method that creates an array of elements
     public init(
-        id: KeyPath<Data.Element, ID>,
-        alignment: Alignment = .center,
-        horizontalSpacing: CGFloat = 0,
-        verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+        horizontalSpacing: CGFloat,
+        verticalSpacing: CGFloat,
+        idealLineLength: Int? = nil
     ) {
-        let forEach = create()
-        data = forEach.data
-        content = forEach.content
-        idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
-        self.id = id
-        self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
     }
     
-    private func splitIntoLines(maxWidth: CGFloat) -> [Range<Data.Index>] {
-        let lines = Lines(elements: data, spacing: horizontalSpacing) { element in
-            sizes[element[keyPath: id]]?.width ?? 0
-        }
-        return lines.split(lengthLimit: maxWidth)
-    }
-    
     public var body: some View {
-        if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
-            // All sizes are calculated, displaying the view
-            laidOutContent
-        } else {
-            // Calculating sizes
-            sizeCalculatorView
+        WrappingHStackLayout(
+            horizontalSpacing: horizontalSpacing,
+            verticalSpacing: verticalSpacing
+        ) {
+            ForEach(0 ..< 20) { index in
+                Rectangle().frame(width: 50, height: 50)
+                    .overlay(Text("\(index)").foregroundColor(.white))
+            }
         }
+        .background(Color.gray)
     }
-    
-    private var laidOutContent: some View {
-        TightHeightGeometryReader(alignment: alignment) { geometry in
-            let splited = splitIntoLines(maxWidth: geometry.size.width)
+}
+
+@available(iOS 16, macOS 13, *)
+private struct WrappingHStackLayout: Layout {
+    struct Cache {
+        private(set) var dimensions: [ViewDimensions] = []
+        
+        mutating func invalidate() {
+            dimensions = []
+        }
+        
+        mutating func updateSizesIfNeeded(subviews: Subviews, proposal: ProposedViewSize) {
+            guard dimensions.isEmpty
+            else { return }
             
-            // All sizes are known
-            VStack(alignment: alignment.horizontal, spacing: verticalSpacing) {
-                ForEach(Array(splited.enumerated()), id: \.offset) { list in
-                    HStack(alignment: alignment.vertical, spacing: horizontalSpacing) {
-                        ForEach(data[list.element], id: id) {
-                            content($0)
-                        }
-                    }
-                }
-            }
+            dimensions = subviews.map { $0.dimensions(in: proposal) }
         }
     }
     
-    private var sizeCalculatorView: some View {
-        VStack {
-            ForEach(dataForCalculatingSizes, id: id) { d in
-                content(d)
-                    .onSizeChange { size in
-                        let key = d[keyPath: id]
-                        sizes[key] = size
-                        calculatesSizesKeys.insert(key)
-                    }
+    static var layoutProperties: LayoutProperties {
+        var properties = LayoutProperties()
+        properties.stackOrientation = .vertical
+        return properties
+    }
+    
+    var horizontalSpacing: CGFloat
+    var verticalSpacing: CGFloat
+    
+    func makeCache(subviews: Subviews) -> Cache { .init() }
+    
+    func updateCache(_ cache: inout Cache, subviews: Subviews) {
+        cache.invalidate()
+    }
+    
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout Cache)
+    -> CGSize {
+        print("Proposed size \(proposal.width)x\(proposal.height)")
+        
+//        The zero proposal; respond with the layout’s minimum size.
+//        The infinity proposal; respond with the layout’s maximum size.
+//        The unspecified proposal; respond with the layout’s ideal size.
+        
+        cache.updateSizesIfNeeded(subviews: subviews, proposal: proposal)
+        
+        let dimensions = cache.dimensions
+        
+        if proposal.width == .zero {
+            // searching for minimal width size
+            let result = calculateMinWidthSize(dimensions: dimensions)
+            print(result)
+            return result
+        } else if proposal.width == .infinity {
+            // searching for minimal width size
+            let result = calculateMaxWidthSize(dimensions: dimensions)
+            print(result)
+            return result
+        }
+        
+        
+        //FIXME:
+        let proposedSize = proposal.replacingUnspecifiedDimensions(by: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
+        
+
+        let lines = Lines(
+            elements: subviews.indices,
+            spacing: horizontalSpacing
+        ) { dimensions[$0].width }.split(lengthLimit: proposedSize.width)
+        
+        let linesHeights = lines.lazy
+            .map { dimensions[$0].lazy.map { $0.height }.max() ?? 0 }
+        
+        let verticalSpacing = verticalSpacing
+        let horizontalSpacing = horizontalSpacing
+        
+        var totalHeight = linesHeights.reduce(into: 0) { totalHeight, lineHeight in
+            totalHeight += lineHeight + verticalSpacing
+        }
+        
+        var maxWidth = lines.lazy.map {
+            dimensions[$0].lazy.map { $0.width }.reduce(into: 0) { width, elementWidth in
+                width += elementWidth + horizontalSpacing
             }
+        }.max() ?? 0
+        
+        if !lines.isEmpty {
+            maxWidth -= horizontalSpacing
+            totalHeight -= verticalSpacing
+        }
+        
+        let computedSize = CGSize(width: maxWidth, height: totalHeight)
+        
+        print(lines)
+        print(computedSize)
+        
+        return computedSize
+    }
+    
+    private func calculateMinWidthSize(dimensions: [ViewDimensions]) -> CGSize {
+        let (height, width) = calculateLineSize(
+            elements: dimensions,
+            spacing: verticalSpacing,
+            length: \.height,
+            normalLength: \.width
+        )
+        return CGSize(width: width, height: height)
+    }
+    
+    private func calculateMaxWidthSize(dimensions: [ViewDimensions]) -> CGSize {
+        let (width, height) = calculateLineSize(
+            elements: dimensions,
+            spacing: horizontalSpacing,
+            length: \.width,
+            normalLength: \.height
+        )
+        return CGSize(width: width, height: height)
+    }
+    
+    private func calculateLineSize<S: RandomAccessCollection>(
+        elements: S,
+        spacing: CGFloat,
+        length: (S.Element) -> CGFloat,
+        normalLength: (S.Element) -> CGFloat
+    ) -> (length: CGFloat, normalLength: CGFloat) {
+        
+        var lineSize = elements.reduce(into:(length: CGFloat.zero, normalLength: CGFloat.zero)) { result, element in
+            result.length += length(element)
+            
+            let normalElementLength = normalLength(element)
+            
+            if result.normalLength < normalElementLength{
+                result.normalLength = normalElementLength
+            }
+        }
+        
+        if !elements.isEmpty {
+            lineSize.length += spacing * CGFloat(elements.count - 1)
+        }
+        
+        return lineSize
+    }
+    
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout Cache
+    ) {
+        cache.updateSizesIfNeeded(subviews: subviews, proposal: proposal)
+        
+        print("Placing subviews in \(bounds)")
+        let horizontalSpacing = horizontalSpacing
+        let verticalSpacing = verticalSpacing
+        
+        let minX = bounds.minX
+        
+        var y: CGFloat = bounds.minY
+        
+        let proposedSize = proposal.replacingUnspecifiedDimensions(by: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
+        let dimensions = cache.dimensions
+        
+        let lines = Lines(
+            elements: subviews.indices,
+            spacing: horizontalSpacing
+        ) { dimensions[$0].width }
+        
+        lines.split(lengthLimit: proposedSize.width).forEach { line in
+            var x: CGFloat = minX
+            var height: CGFloat = 0
+            
+            line.indices.forEach { index in
+                let size = cache.dimensions[index]
+                subviews[index].place(
+                    at: CGPoint(x: x, y: y),
+                    proposal: ProposedViewSize(width: size.width, height: size.height)
+                )
+                x += size.width + horizontalSpacing
+                height = max(height, size.height)
+            }
+            
+            y += height + verticalSpacing
         }
     }
 }
 
-@available(iOS 14, macOS 11, *)
-extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable {
-    /// Creates a new WrappingHStack
-    ///
-    /// - Parameters:
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
-    ///   - horizontalSpacing: horizontal spacing between elements
-    ///   - verticalSpacing: vertical spacing between the lines
-    ///   - create: a method that creates an array of elements
-    public init(
-        alignment: Alignment = .center,
-        horizontalSpacing: CGFloat = 0,
-        verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
-    ) {
-        self.init(id: \.id,
-                  alignment: alignment,
-                  horizontalSpacing: horizontalSpacing,
-                  verticalSpacing: verticalSpacing,
-                  content: create)
-    }
-}
-
-#if DEBUG
-
-@available(iOS 14, macOS 11, *)
+@available(iOS 16, macOS 13, *)
 struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
-        WrappingHStack(
-            id: \.self,
-            alignment: .trailing,
-            horizontalSpacing: 8,
-            verticalSpacing: 8
-        ) {
-            ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
-                Text(element)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(6)
-                    .fixedSize()
-            }
-        }
-        .padding()
-        .frame(width: 300)
-        .background(Color.white)
+        WrappingHStack(horizontalSpacing: 5, verticalSpacing: 5)
     }
 }
-
-#endif
 
 #endif
