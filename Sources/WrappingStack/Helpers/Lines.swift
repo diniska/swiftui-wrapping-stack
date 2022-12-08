@@ -20,10 +20,10 @@ struct Lines<S: RandomAccessCollection> {
 
             let newLength = currentLength + elementLength
             
-            if newLength < lengthLimit                  // element could safely be added to the line
+            if newLength <= lengthLimit                 // element could safely be added to the line
                 || numberOfElementsInCurrentLine == 0 { // or line is empty
                 currentLength = newLength + spacing
-                numberOfElementsInCurrentLine += 1 //
+                numberOfElementsInCurrentLine += 1
             } else {                                    // moving element to the next line
                 currentLength = elementLength + spacing
                 let lineEnd = elements.index(lineStart, offsetBy: numberOfElementsInCurrentLine)
