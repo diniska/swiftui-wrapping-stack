@@ -1,6 +1,6 @@
 # SwiftUI WrappingStack
 
-![Swift 5.3](https://img.shields.io/badge/Swift-5.3-FA5B2C) ![Xcode 12.5](https://img.shields.io/badge/Xcode-12.5-44B3F6) ![iOS 9.0](https://img.shields.io/badge/iOS-9.0-178DF6) ![iPadOS 9.0](https://img.shields.io/badge/iPadOS-9.0-178DF6) ![MacOS 10.10](https://img.shields.io/badge/MacOS-10.10-178DF6) [![Build & Test](https://github.com/diniska/swiftui-wrapping-stack/actions/workflows/test.yml/badge.svg)](https://github.com/diniska/swiftui-wrapping-stack/actions/workflows/test.yml)
+![Swift 5.3](https://img.shields.io/badge/Swift-5.3-FA5B2C) ![Xcode 12.5+](https://img.shields.io/badge/Xcode-12.5-44B3F6) ![iOS 9.0+](https://img.shields.io/badge/iOS-9.0-178DF6) ![iPadOS 9.0+](https://img.shields.io/badge/iPadOS-9.0-178DF6) ![MacOS 10.10+](https://img.shields.io/badge/MacOS-10.10-178DF6) [![Build & Test](https://github.com/diniska/swiftui-wrapping-stack/actions/workflows/test.yml/badge.svg)](https://github.com/diniska/swiftui-wrapping-stack/actions/workflows/test.yml) [![codebeat badge](https://codebeat.co/badges/a0d5ffba-ab99-456e-aa75-3a30dd46fda4)](https://codebeat.co/projects/github-com-diniska-swiftui-wrapping-stack-void)
 
 A SwiftUI Views for wrapping HStack elements into multiple lines.
 
