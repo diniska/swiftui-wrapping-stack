@@ -156,6 +156,7 @@ struct WrappingHStack_Previews: PreviewProvider {
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(6)
+                    .fixedSize()
             }
         }
         .padding()
