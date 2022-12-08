@@ -16,11 +16,11 @@ struct Lines<S: RandomAccessCollection, Weight: AdditiveArithmetic & Comparable>
         
         for element in elements {
             let elementLength = length(element)
-
             let newLength = currentLength + elementLength
             
-            if newLength <= lengthLimit                 // element could safely be added to the line
-                || numberOfElementsInCurrentLine == 0 { // or line is empty
+            // element could safely be added to the line
+            // or line is empty
+            if newLength <= lengthLimit || numberOfElementsInCurrentLine == 0 {
                 currentLength = newLength + spacing
                 numberOfElementsInCurrentLine += 1
             } else {                                    // moving element to the next line
