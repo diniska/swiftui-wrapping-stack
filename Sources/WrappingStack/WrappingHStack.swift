@@ -66,31 +66,40 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     
     public var body: some View {
         if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
-            TightHeightGeometryReader(alignment: alignment) { geometry in
-                let splitted = splitIntoLines(maxWidth: geometry.size.width)
-                
-                // All sizes are known
-                VStack(alignment: alignment.horizontal, spacing: verticalSpacing) {
-                    ForEach(Array(splitted.enumerated()), id: \.offset) { list in
-                        HStack(alignment: alignment.vertical, spacing: horizontalSpacing) {
-                            ForEach(data[list.element], id: id) {
-                                content($0)
-                            }
+            // All sizes are calculated, displaying the view
+            laidOutContent
+        } else {
+            // Calculating sizes
+            sizeCalculatorView
+        }
+    }
+    
+    private var laidOutContent: some View {
+        TightHeightGeometryReader(alignment: alignment) { geometry in
+            let splited = splitIntoLines(maxWidth: geometry.size.width)
+            
+            // All sizes are known
+            VStack(alignment: alignment.horizontal, spacing: verticalSpacing) {
+                ForEach(Array(splited.enumerated()), id: \.offset) { list in
+                    HStack(alignment: alignment.vertical, spacing: horizontalSpacing) {
+                        ForEach(data[list.element], id: id) {
+                            content($0)
                         }
                     }
                 }
             }
-        } else {
-            // Calculating sizes
-            VStack {
-                ForEach(dataForCalculatingSizes, id: id) { d in
-                    content(d)
-                        .onSizeChange { size in
-                            let key = d[keyPath: id]
-                            sizes[key] = size
-                            calculatesSizesKeys.insert(key)
-                        }
-                }
+        }
+    }
+    
+    private var sizeCalculatorView: some View {
+        VStack {
+            ForEach(dataForCalculatingSizes, id: id) { d in
+                content(d)
+                    .onSizeChange { size in
+                        let key = d[keyPath: id]
+                        sizes[key] = size
+                        calculatesSizesKeys.insert(key)
+                    }
             }
         }
     }
