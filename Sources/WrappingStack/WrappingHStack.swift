@@ -58,31 +58,10 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     }
     
     private func splitIntoLines(maxWidth: CGFloat) -> [Range<Data.Index>] {
-        var width: CGFloat = 0
-        var result: [Range<Data.Index>] = []
-        var lineStart = data.startIndex
-        var lineLength = 0
-        
-        for element in data {
-            guard let elementWidth = sizes[element[keyPath: id]]?.width
-            else { break }
-            let newWidth = width + elementWidth
-            if newWidth < maxWidth || lineLength == 0 {
-                width = newWidth + horizontalSpacing
-                lineLength += 1
-            } else {
-                width = elementWidth + horizontalSpacing
-                let lineEnd = data.index(lineStart, offsetBy:lineLength)
-                result.append(lineStart ..< lineEnd)
-                lineLength = 1
-                lineStart = lineEnd
-            }
+        let lines = Lines(elements: data, spacing: horizontalSpacing) { element in
+            sizes[element[keyPath: id]]?.width ?? 0
         }
-        
-        if lineStart != data.endIndex {
-            result.append(lineStart ..< data.endIndex)
-        }
-        return result
+        return lines.split(lengthLimit: maxWidth)
     }
     
     public var body: some View {

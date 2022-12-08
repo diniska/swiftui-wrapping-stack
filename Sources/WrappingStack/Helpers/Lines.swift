@@ -18,24 +18,23 @@ struct Lines<S: RandomAccessCollection> {
         for element in elements {
             let elementLength = length(element)
 
-            let newLength = currentLength + spacing + elementLength // spacing is added before the element
+            let newLength = currentLength + elementLength
             
-            if newLength < lengthLimit // element could safely be added to the line
-                || numberOfElementsInCurrentLine == 0 { // line is empty
-                currentLength = newLength
+            if newLength < lengthLimit                  // element could safely be added to the line
+                || numberOfElementsInCurrentLine == 0 { // or line is empty
+                currentLength = newLength + spacing
                 numberOfElementsInCurrentLine += 1 //
-            } else { // moving element to the next line
-                currentLength = elementLength // it is the only element in the line, no spacing needed
-
+            } else {                                    // moving element to the next line
+                currentLength = elementLength + spacing
                 let lineEnd = elements.index(lineStart, offsetBy: numberOfElementsInCurrentLine)
                 result.append(lineStart ..< lineEnd)
-                lineLength = 1
+                numberOfElementsInCurrentLine = 1
                 lineStart = lineEnd
             }
         }
         
-        if lineStart != data.endIndex {
-            result.append(lineStart ..< data.endIndex)
+        if lineStart != elements.endIndex {
+            result.append(lineStart ..< elements.endIndex)
         }
         return result
     }
