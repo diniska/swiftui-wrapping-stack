@@ -1,16 +1,15 @@
 import Foundation
-import CoreGraphics
 
-struct Lines<S: RandomAccessCollection> {
+struct Lines<S: RandomAccessCollection, Weight: AdditiveArithmetic & Comparable> {
     typealias Element = S.Element
     typealias Index = S.Index
     
     var elements: S
-    var spacing: CGFloat
-    var length: (Element) -> CGFloat
+    var spacing: Weight
+    var length: (Element) -> Weight
     
-    func split(lengthLimit: CGFloat) -> [Range<Index>] {
-        var currentLength: CGFloat = 0
+    func split(lengthLimit: Weight) -> [Range<Index>] {
+        var currentLength: Weight = .zero
         var numberOfElementsInCurrentLine = 0
         var result: [Range<Index>] = []
         var lineStart = elements.startIndex

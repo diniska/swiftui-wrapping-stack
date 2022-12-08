@@ -39,8 +39,8 @@ final class LinesTests: XCTestCase {
     }
 }
 
-private extension Lines where Element == CGFloat {
-    init(elements: S, spacing: CGFloat = 0) {
+private extension Lines where Element == Weight {
+    init(elements: S, spacing: Weight = .zero) {
         self.init(elements: elements, spacing: spacing, length: { $0 })
     }
 }
