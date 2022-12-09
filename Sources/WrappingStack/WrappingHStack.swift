@@ -208,40 +208,45 @@ private struct WrappingHStackLayout: Layout {
         
         let adjustsHorizontalPosition = alignment.horizontal != .leading
         
+        var xAdjustment: (_ lineWidth: CGFloat) -> CGFloat
+        switch alignment.horizontal {
+        case .leading: xAdjustment = { _ in 0 }
+        case .center: xAdjustment = { lineWidth in (bounds.width - lineWidth) / 2 }
+        case .trailing: xAdjustment = { lineWidth in bounds.width - lineWidth }
+        default: // not supported
+            xAdjustment = { _ in 0 }
+        }
+        
+        var yAdjustment: (_ elementHeight: CGFloat, _ lineHeight: CGFloat) -> CGFloat
+        
+        
+        switch alignment.vertical {
+        case .top: yAdjustment = { _, _ in 0 }
+        case .center: yAdjustment = { elementHeight, lineHeight in (lineHeight - elementHeight) / 2 }
+        case .bottom: yAdjustment = { elementHeight, lineHeight in lineHeight - elementHeight }
+        default: // not supported
+            yAdjustment = { _, _ in 0 }
+        }
+        
         lines.split(lengthLimit: proposedSize.width).forEach { line in
-            var x: CGFloat = minX
+            let (lineWidth, lineHeight) = calculateLineSize(
+                elements: cache.dimensions[line],
+                spacing: horizontalSpacing,
+                length: \.width, orthogonalLength: \.height
+            )
             
-            if adjustsHorizontalPosition {
-                var lineWidth = line.indices.reduce(into: 0) { width, index in
-                    width += cache.dimensions[index].width
-                }
-                
-                if !line.isEmpty {
-                    lineWidth += CGFloat(line.count - 1) * horizontalSpacing
-                }
-                
-                switch alignment.horizontal {
-                case .center:
-                    x += (bounds.width - lineWidth) / 2
-                case .trailing:
-                    x += bounds.width - lineWidth
-                default: break
-                }
-            }
-            
-            var height: CGFloat = 0
+            var x = minX + xAdjustment(lineWidth)
             
             line.indices.forEach { index in
                 let size = cache.dimensions[index]
                 subviews[index].place(
-                    at: CGPoint(x: x, y: y),
+                    at: CGPoint(x: x, y: y + yAdjustment(size.height, lineHeight)),
                     proposal: ProposedViewSize(width: size.width, height: size.height)
                 )
                 x += size.width + horizontalSpacing
-                height = max(height, size.height)
             }
             
-            y += height + verticalSpacing
+            y += lineHeight + verticalSpacing
         }
     }
 }
