@@ -206,8 +206,6 @@ private struct WrappingHStackLayout: Layout {
             spacing: horizontalSpacing
         ) { dimensions[$0].width }
         
-        let adjustsHorizontalPosition = alignment.horizontal != .leading
-        
         var xAdjustment: (_ lineWidth: CGFloat) -> CGFloat
         switch alignment.horizontal {
         case .leading: xAdjustment = { _ in 0 }
