@@ -109,13 +109,9 @@ private struct WrappingHStackLayout: Layout {
             spacing: horizontalSpacing
         ) { dimensions[$0].width }.split(lengthLimit: proposedSize.width)
         
-        let linesHeights = lines.lazy
-            .map { dimensions[$0].lazy.map { $0.height }.max() ?? 0 }
-        
-        let verticalSpacing = verticalSpacing
-        let horizontalSpacing = horizontalSpacing
-        
-        var totalHeight = linesHeights.reduce(0, +)
+        var totalHeight = lines.lazy.map {
+            dimensions[$0].lazy.map { $0.height }.max() ?? 0
+        }.reduce(0, +)
         
         var maxWidth = lines.lazy.map {
             dimensions[$0].lazy.map { $0.width }.reduce(0, +)
@@ -154,6 +150,20 @@ private struct WrappingHStackLayout: Layout {
         return CGSize(width: width, height: height)
     }
     
+    private func aggregateLines<S: RandomAccessCollection>(
+        elements: S,
+        spacing: CGFloat,
+        length: (S.Element) -> CGFloat,
+        orthogonalLength: (S.Element) -> CGFloat,
+        aggregateLength: (CGFloat, _ result: CGFloat) -> CGFloat,
+        aggregateOrthogonalLength: (CGFloat, _ result: CGFloat) -> CGFloat
+    ) -> (length: CGFloat, orthogonalLength: CGFloat) {
+        elements.reduce(into: (length: CGFloat.zero, orthogonalLength: CGFloat.zero)) { result, element in
+            result.length = aggregateLength(result.length, length(element))
+            result.orthogonalLength = aggregateOrthogonalLength(result.orthogonalLength, orthogonalLength(element))
+        }
+    }
+    
     private func calculateLineSize<S: RandomAccessCollection>(
         elements: S,
         spacing: CGFloat,
@@ -161,15 +171,14 @@ private struct WrappingHStackLayout: Layout {
         orthogonalLength: (S.Element) -> CGFloat
     ) -> (length: CGFloat, orthogonalLength: CGFloat) {
         
-        var lineSize = elements.reduce(into:(length: CGFloat.zero, orthogonalLength: CGFloat.zero)) { result, element in
-            result.length += length(element)
-            
-            let normalElementLength = orthogonalLength(element)
-            
-            if result.orthogonalLength < normalElementLength{
-                result.orthogonalLength = normalElementLength
-            }
-        }
+        var lineSize = aggregateLines(
+            elements: elements,
+            spacing: spacing,
+            length: length,
+            orthogonalLength: orthogonalLength,
+            aggregateLength: +,
+            aggregateOrthogonalLength: max
+        )
         
         if !elements.isEmpty {
             lineSize.length += spacing * CGFloat(elements.count - 1)
