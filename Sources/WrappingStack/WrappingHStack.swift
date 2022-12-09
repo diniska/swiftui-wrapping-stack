@@ -152,7 +152,7 @@ private struct WrappingHStackLayout: Layout {
             elements: dimensions,
             spacing: verticalSpacing,
             length: \.height,
-            normalLength: \.width
+            orthogonalLength: \.width
         )
         return CGSize(width: width, height: height)
     }
@@ -162,7 +162,7 @@ private struct WrappingHStackLayout: Layout {
             elements: dimensions,
             spacing: horizontalSpacing,
             length: \.width,
-            normalLength: \.height
+            orthogonalLength: \.height
         )
         return CGSize(width: width, height: height)
     }
@@ -171,16 +171,16 @@ private struct WrappingHStackLayout: Layout {
         elements: S,
         spacing: CGFloat,
         length: (S.Element) -> CGFloat,
-        normalLength: (S.Element) -> CGFloat
-    ) -> (length: CGFloat, normalLength: CGFloat) {
+        orthogonalLength: (S.Element) -> CGFloat
+    ) -> (length: CGFloat, orthogonalLength: CGFloat) {
         
-        var lineSize = elements.reduce(into:(length: CGFloat.zero, normalLength: CGFloat.zero)) { result, element in
+        var lineSize = elements.reduce(into:(length: CGFloat.zero, orthogonalLength: CGFloat.zero)) { result, element in
             result.length += length(element)
             
-            let normalElementLength = normalLength(element)
+            let normalElementLength = orthogonalLength(element)
             
-            if result.normalLength < normalElementLength{
-                result.normalLength = normalElementLength
+            if result.orthogonalLength < normalElementLength{
+                result.orthogonalLength = normalElementLength
             }
         }
         
