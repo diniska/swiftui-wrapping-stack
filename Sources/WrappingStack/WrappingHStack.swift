@@ -115,14 +115,10 @@ private struct WrappingHStackLayout: Layout {
         let verticalSpacing = verticalSpacing
         let horizontalSpacing = horizontalSpacing
         
-        var totalHeight = linesHeights.reduce(into: 0) { totalHeight, lineHeight in
-            totalHeight += lineHeight
-        }
+        var totalHeight = linesHeights.reduce(0, +)
         
         var maxWidth = lines.lazy.map {
-            dimensions[$0].lazy.map { $0.width }.reduce(into: 0) { width, elementWidth in
-                width += elementWidth
-            }
+            dimensions[$0].lazy.map { $0.width }.reduce(0, +)
         }.max() ?? 0
         
         if !lines.isEmpty {
