@@ -6,31 +6,39 @@ import SwiftUI
 public struct WrappingHStack: View {
     
     public var idealLineLength: Int?
+    public var alignment: Alignment
     public var horizontalSpacing: CGFloat
     public var verticalSpacing: CGFloat
     
     public init(
+        alignment: Alignment,
         horizontalSpacing: CGFloat,
-        verticalSpacing: CGFloat,
-        idealLineLength: Int? = nil
+        verticalSpacing: CGFloat
     ) {
+        self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
     }
     
     public var body: some View {
+        
         WrappingHStackLayout(
             horizontalSpacing: horizontalSpacing,
-            verticalSpacing: verticalSpacing
+            verticalSpacing: verticalSpacing,
+            alignment: alignment
         ) {
             ForEach(0 ..< 20) { index in
                 Rectangle().frame(width: 50, height: 50)
                     .overlay(Text("\(index)").foregroundColor(.white))
             }
         }
+        .frame(maxWidth: .infinity, alignment: alignment)
         .background(Color.gray)
     }
 }
+
+@available(iOS 16, macOS 13, *)
+extension WrappingHStack: WrappingStack {}
 
 @available(iOS 16, macOS 13, *)
 private struct WrappingHStackLayout: Layout {
@@ -57,6 +65,7 @@ private struct WrappingHStackLayout: Layout {
     
     var horizontalSpacing: CGFloat
     var verticalSpacing: CGFloat
+    var alignment: Alignment
     
     func makeCache(subviews: Subviews) -> Cache { .init() }
     
@@ -198,8 +207,29 @@ private struct WrappingHStackLayout: Layout {
             spacing: horizontalSpacing
         ) { dimensions[$0].width }
         
+        let adjustsHorizontalPosition = alignment.horizontal != .leading
+        
         lines.split(lengthLimit: proposedSize.width).forEach { line in
             var x: CGFloat = minX
+            
+            if adjustsHorizontalPosition {
+                var lineWidth = line.indices.reduce(into: 0) { width, index in
+                    width += cache.dimensions[index].width
+                }
+                
+                if !line.isEmpty {
+                    lineWidth += CGFloat(line.count - 1) * horizontalSpacing
+                }
+                
+                switch alignment.horizontal {
+                case .center:
+                    x += (bounds.width - lineWidth) / 2
+                case .trailing:
+                    x += bounds.width - lineWidth
+                default: break
+                }
+            }
+            
             var height: CGFloat = 0
             
             line.indices.forEach { index in
