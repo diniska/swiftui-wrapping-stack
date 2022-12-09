@@ -108,27 +108,13 @@ private struct WrappingHStackLayout: Layout {
             spacing: horizontalSpacing
         ) { dimensions[$0].width }.split(lengthLimit: proposedSize.width)
         
-        var (maxWidth, totalHeight) = aggregateLines(
-            elements: lines.lazy.map {
-                // for every line calculating total width and max height
-                aggregateLines(
-                    elements: dimensions[$0],
-                    length: \.width,
-                    orthogonalLength: \.height,
-                    aggregateLength: +,
-                    aggregateOrthogonalLength: max
-                ) as (CGFloat, CGFloat) as (lineWidth: CGFloat, lineHeight: CGFloat)
-            },
-            length: \.lineWidth,
-            orthogonalLength: \.lineHeight,
-            aggregateLength: max,
-            aggregateOrthogonalLength: +
+        let (maxWidth, totalHeight) = calculateGridSize(
+            elements: lines.lazy.map { $0.lazy.map { dimensions[$0] } },
+            spacing: horizontalSpacing,
+            orthogonalSpacing: verticalSpacing,
+            length: \.width,
+            orthogonalLength: \.height
         )
-        
-        if !lines.isEmpty {
-            maxWidth += horizontalSpacing * CGFloat(lines.count - 1)
-            totalHeight += verticalSpacing  * CGFloat(lines.count - 1)
-        }
         
         let computedSize = CGSize(width: maxWidth, height: totalHeight)
         
@@ -177,20 +163,57 @@ private struct WrappingHStackLayout: Layout {
         length: (S.Element) -> CGFloat,
         orthogonalLength: (S.Element) -> CGFloat
     ) -> (length: CGFloat, orthogonalLength: CGFloat) {
-        
-        var lineSize = aggregateLines(
-            elements: elements,
+        calculateGridSize(
+            elements: [elements],
+            spacing: spacing,
+            orthogonalSpacing: 0,
             length: length,
-            orthogonalLength: orthogonalLength,
-            aggregateLength: +,
-            aggregateOrthogonalLength: max
+            orthogonalLength: orthogonalLength
+        )
+    }
+    
+    private func calculateGridSize<S: RandomAccessCollection, E: RandomAccessCollection>(
+        elements: S,
+        spacing: CGFloat,
+        orthogonalSpacing: CGFloat,
+        length: (E.Element) -> CGFloat,
+        orthogonalLength: (E.Element) -> CGFloat
+    ) -> (length: CGFloat, orthogonalLength: CGFloat) where S.Element == E {
+        var gridSize = calculateGridSize(
+            elements: elements,
+            length: { length($0) + spacing },
+            orthogonalLength: orthogonalLength
         )
         
         if !elements.isEmpty {
-            lineSize.length += spacing * CGFloat(elements.count - 1)
+            gridSize.length -= spacing
+            gridSize.orthogonalLength += orthogonalSpacing  * CGFloat(elements.count - 1)
         }
         
-        return lineSize
+        return gridSize
+    }
+    
+    private func calculateGridSize<S: RandomAccessCollection, E: RandomAccessCollection>(
+        elements: S,
+        length: (E.Element) -> CGFloat,
+        orthogonalLength: (E.Element) -> CGFloat
+    ) -> (length: CGFloat, orthogonalLength: CGFloat) where S.Element == E {
+        aggregateLines(
+            elements: elements.map {
+                // for every line calculating total width and max height
+                aggregateLines(
+                    elements: $0,
+                    length: length,
+                    orthogonalLength: orthogonalLength,
+                    aggregateLength: +,
+                    aggregateOrthogonalLength: max
+                ) as (CGFloat, CGFloat) as (lineWidth: CGFloat, lineHeight: CGFloat)
+            },
+            length: \.lineWidth,
+            orthogonalLength: \.lineHeight,
+            aggregateLength: max,
+            aggregateOrthogonalLength: +
+        )
     }
     
     func placeSubviews(
