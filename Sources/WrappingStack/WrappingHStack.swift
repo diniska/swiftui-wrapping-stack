@@ -88,9 +88,9 @@ private struct WrappingHStackLayout: Layout {
     -> CGSize {
         print("Proposed size \(proposal.width)x\(proposal.height)")
         
-//        The zero proposal; respond with the layout’s minimum size.
-//        The infinity proposal; respond with the layout’s maximum size.
-//        The unspecified proposal; respond with the layout’s ideal size.
+//        The zero proposal – respond with the layout’s minimum size.
+//        The infinity proposal – respond with the layout’s maximum size.
+//        The unspecified proposal – respond with the layout’s ideal size.
         
         cache.updateSizesIfNeeded(subviews: subviews, proposal: proposal)
         
