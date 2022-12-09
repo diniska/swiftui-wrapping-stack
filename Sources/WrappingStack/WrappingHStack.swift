@@ -108,7 +108,7 @@ private struct WrappingHStackLayout: Layout {
             spacing: horizontalSpacing
         ) { dimensions[$0].width }.split(lengthLimit: proposedSize.width)
         
-        let (maxWidth, totalHeight) = calculateGridSize(
+        let (maxWidth, totalHeight) = MultilineSizeComputer.gridSize(
             elements: lines.lazy.map { $0.lazy.map { dimensions[$0] } },
             spacing: horizontalSpacing,
             orthogonalSpacing: verticalSpacing,
@@ -125,7 +125,8 @@ private struct WrappingHStackLayout: Layout {
     }
     
     private func calculateMinWidthSize(dimensions: [ViewDimensions]) -> CGSize {
-        let (height, width) = calculateLineSize(
+        // vertical column of all elements
+        let (height, width) = MultilineSizeComputer.lineSize(
             elements: dimensions,
             spacing: verticalSpacing,
             length: \.height,
@@ -135,85 +136,14 @@ private struct WrappingHStackLayout: Layout {
     }
     
     private func calculateMaxWidthSize(dimensions: [ViewDimensions]) -> CGSize {
-        let (width, height) = calculateLineSize(
+        // horizontal row of all elements
+        let (width, height) = MultilineSizeComputer.lineSize(
             elements: dimensions,
             spacing: horizontalSpacing,
             length: \.width,
             orthogonalLength: \.height
         )
         return CGSize(width: width, height: height)
-    }
-    
-    private func aggregateLines<S: RandomAccessCollection>(
-        elements: S,
-        length: (S.Element) -> CGFloat,
-        orthogonalLength: (S.Element) -> CGFloat,
-        aggregateLength: (CGFloat, _ result: CGFloat) -> CGFloat,
-        aggregateOrthogonalLength: (CGFloat, _ result: CGFloat) -> CGFloat
-    ) -> (length: CGFloat, orthogonalLength: CGFloat) {
-        elements.reduce(into: (length: CGFloat.zero, orthogonalLength: CGFloat.zero)) { result, element in
-            result.length = aggregateLength(result.length, length(element))
-            result.orthogonalLength = aggregateOrthogonalLength(result.orthogonalLength, orthogonalLength(element))
-        }
-    }
-    
-    private func calculateLineSize<S: RandomAccessCollection>(
-        elements: S,
-        spacing: CGFloat,
-        length: (S.Element) -> CGFloat,
-        orthogonalLength: (S.Element) -> CGFloat
-    ) -> (length: CGFloat, orthogonalLength: CGFloat) {
-        calculateGridSize(
-            elements: [elements],
-            spacing: spacing,
-            orthogonalSpacing: 0,
-            length: length,
-            orthogonalLength: orthogonalLength
-        )
-    }
-    
-    private func calculateGridSize<S: RandomAccessCollection, E: RandomAccessCollection>(
-        elements: S,
-        spacing: CGFloat,
-        orthogonalSpacing: CGFloat,
-        length: (E.Element) -> CGFloat,
-        orthogonalLength: (E.Element) -> CGFloat
-    ) -> (length: CGFloat, orthogonalLength: CGFloat) where S.Element == E {
-        var gridSize = calculateGridSize(
-            elements: elements,
-            length: { length($0) + spacing },
-            orthogonalLength: orthogonalLength
-        )
-        
-        if !elements.isEmpty {
-            gridSize.length -= spacing
-            gridSize.orthogonalLength += orthogonalSpacing  * CGFloat(elements.count - 1)
-        }
-        
-        return gridSize
-    }
-    
-    private func calculateGridSize<S: RandomAccessCollection, E: RandomAccessCollection>(
-        elements: S,
-        length: (E.Element) -> CGFloat,
-        orthogonalLength: (E.Element) -> CGFloat
-    ) -> (length: CGFloat, orthogonalLength: CGFloat) where S.Element == E {
-        aggregateLines(
-            elements: elements.map {
-                // for every line calculating total width and max height
-                aggregateLines(
-                    elements: $0,
-                    length: length,
-                    orthogonalLength: orthogonalLength,
-                    aggregateLength: +,
-                    aggregateOrthogonalLength: max
-                ) as (CGFloat, CGFloat) as (lineWidth: CGFloat, lineHeight: CGFloat)
-            },
-            length: \.lineWidth,
-            orthogonalLength: \.lineHeight,
-            aggregateLength: max,
-            aggregateOrthogonalLength: +
-        )
     }
     
     func placeSubviews(
@@ -251,7 +181,6 @@ private struct WrappingHStackLayout: Layout {
         
         var yAdjustment: (_ elementHeight: CGFloat, _ lineHeight: CGFloat) -> CGFloat
         
-        
         switch alignment.vertical {
         case .top: yAdjustment = { _, _ in 0 }
         case .center: yAdjustment = { elementHeight, lineHeight in (lineHeight - elementHeight) / 2 }
@@ -261,7 +190,7 @@ private struct WrappingHStackLayout: Layout {
         }
         
         lines.split(lengthLimit: proposedSize.width).forEach { line in
-            let (lineWidth, lineHeight) = calculateLineSize(
+            let (lineWidth, lineHeight) = MultilineSizeComputer.lineSize(
                 elements: cache.dimensions[line],
                 spacing: horizontalSpacing,
                 length: \.width, orthogonalLength: \.height
