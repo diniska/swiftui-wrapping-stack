@@ -34,29 +34,21 @@ public struct WrappingHStackOld<Data: RandomAccessCollection, ID: Hashable, Cont
         return result
     }
     
-    /// Creates a new WrappingHStackOld
-    ///
-    /// - Parameters:
-    ///   - id: a keypath of element identifier
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
-    ///   - horizontalSpacing: horizontal spacing between elements
-    ///   - verticalSpacing: vertical spacing between the lines
-    ///   - create: a method that creates an array of elements
     public init(
+        data: Data,
         id: KeyPath<Data.Element, ID>,
-        alignment: Alignment = .center,
-        horizontalSpacing: CGFloat = 0,
-        verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
-    ) {
-        let forEach = create()
-        data = forEach.data
-        content = forEach.content
-        idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
+        alignment: Alignment,
+        horizontalSpacing: CGFloat,
+        verticalSpacing: CGFloat,
+        content: @escaping (Data.Element) -> Content
+    )  {
+        self.data = data
         self.id = id
         self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
+        self.content = content
+        idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
     }
     
     private func splitIntoLines(maxWidth: CGFloat) -> [Range<Data.Index>] {
@@ -108,27 +100,7 @@ public struct WrappingHStackOld<Data: RandomAccessCollection, ID: Hashable, Cont
 }
 
 @available(iOS 14, macOS 11, *)
-extension WrappingHStackOld where ID == Data.Element.ID, Data.Element: Identifiable {
-    /// Creates a new WrappingHStackOld
-    ///
-    /// - Parameters:
-    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
-    ///   - horizontalSpacing: horizontal spacing between elements
-    ///   - verticalSpacing: vertical spacing between the lines
-    ///   - create: a method that creates an array of elements
-    public init(
-        alignment: Alignment = .center,
-        horizontalSpacing: CGFloat = 0,
-        verticalSpacing: CGFloat = 0,
-        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
-    ) {
-        self.init(id: \.id,
-                  alignment: alignment,
-                  horizontalSpacing: horizontalSpacing,
-                  verticalSpacing: verticalSpacing,
-                  content: create)
-    }
-}
+extension WrappingHStackOld: WrappingStack {}
 
 #if DEBUG
 

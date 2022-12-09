@@ -3,25 +3,33 @@
 import SwiftUI
 
 @available(iOS 16, macOS 13, *)
-public struct WrappingHStack: View {
+public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
     
+    public let data: Data
+    public var content: (Data.Element) -> Content
+    public var id: KeyPath<Data.Element, ID>
     public var idealLineLength: Int?
     public var alignment: Alignment
     public var horizontalSpacing: CGFloat
     public var verticalSpacing: CGFloat
     
     public init(
+        data: Data,
+        id: KeyPath<Data.Element, ID>,
         alignment: Alignment,
         horizontalSpacing: CGFloat,
-        verticalSpacing: CGFloat
+        verticalSpacing: CGFloat,
+        content: @escaping (Data.Element) -> Content
     ) {
+        self.data = data
+        self.content = content
+        self.id = id
         self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
     }
     
     public var body: some View {
-        
         WrappingHStackLayout(
             horizontalSpacing: horizontalSpacing,
             verticalSpacing: verticalSpacing,
@@ -250,7 +258,23 @@ private struct WrappingHStackLayout: Layout {
 @available(iOS 16, macOS 13, *)
 struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
-        WrappingHStack(horizontalSpacing: 5, verticalSpacing: 5)
+        WrappingHStack(
+            id: \.self,
+            alignment: .trailing,
+            horizontalSpacing: 8,
+            verticalSpacing: 8
+        ) {
+            ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
+                Text(element)
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(6)
+                    .fixedSize()
+            }
+        }
+        .padding()
+        .frame(width: 300)
+        .background(Color.white)
     }
 }
 
