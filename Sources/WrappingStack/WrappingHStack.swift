@@ -117,10 +117,10 @@ private struct WrappingHStackLayout: Layout {
                     orthogonalLength: \.height,
                     aggregateLength: +,
                     aggregateOrthogonalLength: max
-                )
+                ) as (CGFloat, CGFloat) as (lineWidth: CGFloat, lineHeight: CGFloat)
             },
-            length: \.length, // line width
-            orthogonalLength: \.orthogonalLength, // line height
+            length: \.lineWidth,
+            orthogonalLength: \.lineHeight,
             aggregateLength: max,
             aggregateOrthogonalLength: +
         )
