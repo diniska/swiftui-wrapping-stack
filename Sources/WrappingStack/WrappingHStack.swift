@@ -116,18 +116,18 @@ private struct WrappingHStackLayout: Layout {
         let horizontalSpacing = horizontalSpacing
         
         var totalHeight = linesHeights.reduce(into: 0) { totalHeight, lineHeight in
-            totalHeight += lineHeight + verticalSpacing
+            totalHeight += lineHeight
         }
         
         var maxWidth = lines.lazy.map {
             dimensions[$0].lazy.map { $0.width }.reduce(into: 0) { width, elementWidth in
-                width += elementWidth + horizontalSpacing
+                width += elementWidth
             }
         }.max() ?? 0
         
         if !lines.isEmpty {
-            maxWidth -= horizontalSpacing
-            totalHeight -= verticalSpacing
+            maxWidth += horizontalSpacing * CGFloat(lines.count - 1)
+            totalHeight += verticalSpacing  * CGFloat(lines.count - 1)
         }
         
         let computedSize = CGSize(width: maxWidth, height: totalHeight)
