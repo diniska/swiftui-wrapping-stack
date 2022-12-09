@@ -103,19 +103,27 @@ private struct WrappingHStackLayout: Layout {
         //FIXME:
         let proposedSize = proposal.replacingUnspecifiedDimensions(by: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude))
         
-
         let lines = Lines(
             elements: subviews.indices,
             spacing: horizontalSpacing
         ) { dimensions[$0].width }.split(lengthLimit: proposedSize.width)
         
-        var totalHeight = lines.lazy.map {
-            dimensions[$0].lazy.map { $0.height }.max() ?? 0
-        }.reduce(0, +)
-        
-        var maxWidth = lines.lazy.map {
-            dimensions[$0].lazy.map { $0.width }.reduce(0, +)
-        }.max() ?? 0
+        var (maxWidth, totalHeight) = aggregateLines(
+            elements: lines.lazy.map {
+                // for every line calculating total width and max height
+                aggregateLines(
+                    elements: dimensions[$0],
+                    length: \.width,
+                    orthogonalLength: \.height,
+                    aggregateLength: +,
+                    aggregateOrthogonalLength: max
+                )
+            },
+            length: \.length, // line width
+            orthogonalLength: \.orthogonalLength, // line height
+            aggregateLength: max,
+            aggregateOrthogonalLength: +
+        )
         
         if !lines.isEmpty {
             maxWidth += horizontalSpacing * CGFloat(lines.count - 1)
@@ -152,7 +160,6 @@ private struct WrappingHStackLayout: Layout {
     
     private func aggregateLines<S: RandomAccessCollection>(
         elements: S,
-        spacing: CGFloat,
         length: (S.Element) -> CGFloat,
         orthogonalLength: (S.Element) -> CGFloat,
         aggregateLength: (CGFloat, _ result: CGFloat) -> CGFloat,
@@ -173,7 +180,6 @@ private struct WrappingHStackLayout: Layout {
         
         var lineSize = aggregateLines(
             elements: elements,
-            spacing: spacing,
             length: length,
             orthogonalLength: orthogonalLength,
             aggregateLength: +,
