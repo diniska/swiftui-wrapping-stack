@@ -8,13 +8,20 @@ public protocol WrappingStack {
     associatedtype ID: Hashable
     associatedtype Content: View
     
+    /// Creates a new WrappingHStackOld
+    ///
+    /// - Parameters:
+    ///   - id: a keypath of element identifier
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
     init(
-        data: Data,
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment,
         horizontalSpacing: CGFloat,
         verticalSpacing: CGFloat,
-        content: @escaping (Data.Element) -> Content
+        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
     )
 }
 
@@ -36,13 +43,11 @@ public extension WrappingStack {
         verticalSpacing: CGFloat = 0,
         @ViewBuilder content create: () -> ForEach<Data, ID, Content>
     ) {
-        let forEach = create()
-        self.init(data: forEach.data,
-                  id: id,
+        self.init(id: id,
                   alignment: alignment,
                   horizontalSpacing: horizontalSpacing,
                   verticalSpacing: verticalSpacing,
-                  content: forEach.content)
+                  content: create)
     }
 }
 

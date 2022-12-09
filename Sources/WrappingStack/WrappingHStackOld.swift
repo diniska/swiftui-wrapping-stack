@@ -34,21 +34,29 @@ public struct WrappingHStackOld<Data: RandomAccessCollection, ID: Hashable, Cont
         return result
     }
     
+    /// Creates a new WrappingHStack
+    ///
+    /// - Parameters:
+    ///   - id: a keypath of element identifier
+    ///   - alignment: horizontal and vertical alignment. Vertical alignment is applied to every row
+    ///   - horizontalSpacing: horizontal spacing between elements
+    ///   - verticalSpacing: vertical spacing between the lines
+    ///   - create: a method that creates an array of elements
     public init(
-        data: Data,
         id: KeyPath<Data.Element, ID>,
-        alignment: Alignment,
-        horizontalSpacing: CGFloat,
-        verticalSpacing: CGFloat,
-        content: @escaping (Data.Element) -> Content
-    )  {
-        self.data = data
+        alignment: Alignment = .center,
+        horizontalSpacing: CGFloat = 0,
+        verticalSpacing: CGFloat = 0,
+        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
+    ) {
+        let forEach = create()
+        data = forEach.data
+        content = forEach.content
+        idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
         self.id = id
         self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
-        self.content = content
-        idsForCalculatingSizes = Set(data.map { $0[keyPath: id] })
     }
     
     private func splitIntoLines(maxWidth: CGFloat) -> [Range<Data.Index>] {

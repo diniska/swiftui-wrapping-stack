@@ -5,8 +5,7 @@ import SwiftUI
 @available(iOS 16, macOS 13, *)
 public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
     
-    public let data: Data
-    public var content: (Data.Element) -> Content
+    public var content: ForEach<Data, ID, Content>
     public var id: KeyPath<Data.Element, ID>
     public var idealLineLength: Int?
     public var alignment: Alignment
@@ -14,15 +13,13 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     public var verticalSpacing: CGFloat
     
     public init(
-        data: Data,
         id: KeyPath<Data.Element, ID>,
         alignment: Alignment,
         horizontalSpacing: CGFloat,
         verticalSpacing: CGFloat,
-        content: @escaping (Data.Element) -> Content
+        @ViewBuilder content create: () -> ForEach<Data, ID, Content>
     ) {
-        self.data = data
-        self.content = content
+        self.content = create()
         self.id = id
         self.alignment = alignment
         self.horizontalSpacing = horizontalSpacing
@@ -34,14 +31,8 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
             horizontalSpacing: horizontalSpacing,
             verticalSpacing: verticalSpacing,
             alignment: alignment
-        ) {
-            ForEach(0 ..< 20) { index in
-                Rectangle().frame(width: 50, height: 50)
-                    .overlay(Text("\(index)").foregroundColor(.white))
-            }
-        }
+        ) { content }
         .frame(maxWidth: .infinity, alignment: alignment)
-        .background(Color.gray)
     }
 }
 
