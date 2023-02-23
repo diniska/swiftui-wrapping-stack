@@ -142,14 +142,13 @@ struct WrappingHStack_Previews: PreviewProvider {
             ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
                 Text(element)
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.secondary.opacity(0.2))
                     .cornerRadius(6)
                     .fixedSize()
             }
         }
         .padding()
         .frame(width: 300)
-        .background(Color.white)
     }
 }
 
