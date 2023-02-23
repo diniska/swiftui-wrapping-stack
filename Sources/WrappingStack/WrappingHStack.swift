@@ -3,7 +3,7 @@
 import SwiftUI
 
 /// An HStack that grows vertically when single line overflows
-@available(iOS 14, macOS 11, *)
+@available(iOS 14, tvOS 14, macOS 11, *)
 public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content: View>: View {
     
     public let data: Data
@@ -105,7 +105,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     }
 }
 
-@available(iOS 14, macOS 11, *)
+@available(iOS 14, tvOS 14, macOS 11, *)
 extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable {
     /// Creates a new WrappingHStack
     ///
@@ -130,7 +130,7 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
 
 #if DEBUG
 
-@available(iOS 14, macOS 11, *)
+@available(iOS 14, tvOS 14, macOS 11, *)
 struct WrappingHStack_Previews: PreviewProvider {
     static var previews: some View {
         WrappingHStack(

@@ -2,7 +2,7 @@
 
 import SwiftUI
 
-@available(iOS 14, macOS 11, *)
+@available(iOS 14, tvOS 14, macOS 11, *)
 struct TightHeightGeometryReader<Content: View>: View {
     var alignment: Alignment
     @State private var height: CGFloat = 0
