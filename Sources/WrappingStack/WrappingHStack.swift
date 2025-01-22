@@ -14,13 +14,13 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     public var verticalSpacing: CGFloat
     
     @State private var sizes: [ID: CGSize] = [:]
-    @State private var calculatesSizesKeys: Set<ID> = []
+    @State private var calculatedSizesKeys: Set<ID> = []
     
     private let idsForCalculatingSizes: Set<ID>
     private var dataForCalculatingSizes: [Data.Element] {
         var result: [Data.Element] = []
         var idsToProcess: Set<ID> = idsForCalculatingSizes
-        idsToProcess.subtract(calculatesSizesKeys)
+        idsToProcess.subtract(calculatedSizesKeys)
         
         data.forEach { item in
             let itemId = item[keyPath: id]
@@ -65,7 +65,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
     }
     
     public var body: some View {
-        if calculatesSizesKeys.isSuperset(of: idsForCalculatingSizes) {
+        if calculatedSizesKeys.isSuperset(of: idsForCalculatingSizes) {
             // All sizes are calculated, displaying the view
             laidOutContent
         } else {
@@ -98,7 +98,7 @@ public struct WrappingHStack<Data: RandomAccessCollection, ID: Hashable, Content
                     .onSizeChange { size in
                         let key = d[keyPath: id]
                         sizes[key] = size
-                        calculatesSizesKeys.insert(key)
+                        calculatedSizesKeys.insert(key)
                     }
             }
         }
