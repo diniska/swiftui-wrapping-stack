@@ -12,9 +12,15 @@ import SwiftUI
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 public struct WrappingHStackLayout: Layout {
     
-    public var alignment: Alignment = .center
-    public var horizontalSpacing: CGFloat = 0
-    public var verticalSpacing: CGFloat = 0
+    public var alignment: Alignment
+    public var horizontalSpacing: CGFloat
+    public var verticalSpacing: CGFloat
+    
+    public init(alignment: Alignment = .center, horizontalSpacing: CGFloat = 0, verticalSpacing: CGFloat = 0) {
+        self.alignment = alignment
+        self.horizontalSpacing = horizontalSpacing
+        self.verticalSpacing = verticalSpacing
+    }
     
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         var dimensions: [Subviews.Index: ViewDimensions] = [:]
