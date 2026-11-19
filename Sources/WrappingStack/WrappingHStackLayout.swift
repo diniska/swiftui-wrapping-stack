@@ -67,9 +67,9 @@ public struct WrappingHStackLayout: Layout {
             return size.width
         }
         
-        let maxWidth = proposal.replacingUnspecifiedDimensions(by: CGSize(width: CGFloat.greatestFiniteMagnitude, height: .zero)).width
+        let width = bounds.width
         
-        let splitted = lines.split(lengthLimit: maxWidth)
+        let splitted = lines.split(lengthLimit: width)
         
         let lineHeights: [CGFloat] = splitted.reduce(into: []) { heights, line in
             heights.append(line.lazy.map { dimensions[$0]?.height ?? 0 }.max() ?? 0)
@@ -93,13 +93,13 @@ public struct WrappingHStackLayout: Layout {
         
         switch alignment.horizontal {
         case .leading: alignHorizontally = { _, x in x }
-        case .trailing: alignHorizontally = { lineWidth, x in bounds.maxX - lineWidth + x }
-        default: alignHorizontally = { lineWidth, x in x + (bounds.maxX - lineWidth) / 2 }
+        case .trailing: alignHorizontally = { lineWidth, x in width - lineWidth + x }
+        default: alignHorizontally = { lineWidth, x in x + (width - lineWidth) / 2 }
             // TODO: support all other cases
         }
         
         for (lineIndex, line) in splitted.enumerated() {
-            var x: CGFloat = bounds.minX
+            var x: CGFloat = 0
             var height: CGFloat = 0
             for index in line {
                 guard let dimension = dimensions[index]
@@ -110,7 +110,7 @@ public struct WrappingHStackLayout: Layout {
                 
                 subviews[index].place(
                     at: CGPoint(
-                        x: alignHorizontally(lineWidth, x),
+                        x: bounds.minX + alignHorizontally(lineWidth, x),
                         y: y + alignVertically(lineHeight, dimension.height)
                     ),
                     anchor: .topLeading,
@@ -132,7 +132,7 @@ public struct WrappingHStackLayout: Layout {
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 #Preview {
     WrappingHStackLayout(
-        alignment: .trailing,
+        alignment: .center,
         horizontalSpacing: 8,
         verticalSpacing: 8
     ) {
@@ -157,7 +157,7 @@ public struct WrappingHStackLayout: Layout {
             .background(Color.secondary.opacity(0.2))
             .cornerRadius(6)
     }
-    .frame(maxWidth: 200)
+    .frame(maxWidth: 240)
 }
 
 #endif

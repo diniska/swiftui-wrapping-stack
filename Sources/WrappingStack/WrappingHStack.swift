@@ -131,25 +131,23 @@ extension WrappingHStack where ID == Data.Element.ID, Data.Element: Identifiable
 #if DEBUG
 
 @available(iOS 14, tvOS 14, macOS 11, *)
-struct WrappingHStack_Previews: PreviewProvider {
-    static var previews: some View {
-        WrappingHStack(
-            id: \.self,
-            alignment: .trailing,
-            horizontalSpacing: 8,
-            verticalSpacing: 8
-        ) {
-            ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
-                Text(element)
-                    .padding()
-                    .background(Color.secondary.opacity(0.2))
-                    .cornerRadius(6)
-                    .fixedSize()
-            }
+#Preview {
+    WrappingHStack(
+        id: \.self,
+        alignment: .trailing,
+        horizontalSpacing: 8,
+        verticalSpacing: 8
+    ) {
+        ForEach(["Cat 🐱", "Dog 🐶", "Sun 🌞", "Moon 🌕", "Tree 🌳"], id: \.self) { element in
+            Text(element)
+                .padding()
+                .background(Color.secondary.opacity(0.2))
+                .cornerRadius(6)
+                .fixedSize()
         }
-        .padding()
-        .frame(width: 300)
     }
+    .padding()
+    .frame(width: 300)
 }
 
 #endif
